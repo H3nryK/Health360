@@ -1,0 +1,57 @@
+export const theme = {
+    colors: {
+      primary: '#2563EB',
+      secondary: '#3B82F6',
+      success: '#10B981',
+      danger: '#EF4444',
+      warning: '#F59E0B',
+      background: '#F8FAFC',
+      card: '#FFFFFF',
+      text: '#1F2937',
+      subtext: '#64748B',
+      border: '#E2E8F0',
+      muted: '#9CA3AF',
+      highlight: '#D1D5DB',
+      shadow: 'rgba(0, 0, 0, 0.1)',
+      overlay: 'rgba(31, 41, 55, 0.85)',
+    },
+    spacing: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+      xxl: 40,
+    },
+    borderRadius: {
+      sm: 4,
+      md: 8,
+      lg: 16,
+      xl: 24,
+      full: 9999,
+    },
+    typography: {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: {
+        xs: 12,
+        sm: 14,
+        md: 16,
+        lg: 18,
+        xl: 20,
+        xxl: 24,
+      },
+      fontWeight: {
+        light: '300',
+        regular: '400',
+        medium: '500',
+        bold: '700',
+      },
+    },
+    shadows: {
+      sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+      md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+      xl: '0 20px 25px rgba(0, 0, 0, 0.1)',
+    },
+  };
+  
