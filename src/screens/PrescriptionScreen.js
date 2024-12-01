@@ -1,139 +1,121 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Text, Card, Button, Icon, Divider } from '@rneui/themed';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const PrescriptionScreen = () => {
-  const prescriptions = [
-    {
-      id: 1,
-      medicine: 'Amoxicillin',
-      dosage: '500mg',
-      frequency: '3 times daily',
-      duration: '7 days',
-      doctor: 'Dr. Smith',
-      date: '2024-01-15',
-      status: 'active',
-    },
-    {
-      id: 2,
-      medicine: 'Ibuprofen',
-      dosage: '400mg',
-      frequency: 'As needed',
-      duration: '5 days',
-      doctor: 'Dr. Johnson',
-      date: '2024-01-10',
-      status: 'completed',
-    },
-  ];
+const prescriptions = [
+  {
+    id: '1',
+    medication: 'Amoxicillin 500mg',
+    doctor: 'Dr. Sarah Smith',
+    date: '2024-01-15',
+    status: 'Active',
+    refills: 2,
+    instructions: 'Take 1 capsule 3 times daily'
+  },
+  // Add more prescriptions
+];
 
+export default function PrescriptionsScreen() {
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text h4>My Prescriptions</Text>
-        <Button
-          icon={<Icon name="add" color="white" />}
-          title="Add New"
-          buttonStyle={styles.addButton}
-        />
-      </View>
-
-      {prescriptions.map((prescription) => (
-        <Card key={prescription.id} containerStyle={styles.prescriptionCard}>
-          <View style={styles.prescriptionHeader}>
-            <Text h4>{prescription.medicine}</Text>
-            <Text
-              style={[
-                styles.status,
-                {
-                  color: prescription.status === 'active' ? '#4CAF50' : '#666',
-                },
-              ]}
-            >
-              {prescription.status}
-            </Text>
-          </View>
-
-          <Divider style={styles.divider} />
-
-          <View style={styles.prescriptionDetails}>
-            <DetailRow icon="medical-services" label="Dosage" value={prescription.dosage} />
-            <DetailRow icon="schedule" label="Frequency" value={prescription.frequency} />
-            <DetailRow icon="event" label="Duration" value={prescription.duration} />
-            <DetailRow icon="person" label="Doctor" value={prescription.doctor} />
-            <DetailRow icon="calendar-today" label="Date" value={prescription.date} />
-          </View>
-
-          <Button
-            title="Refill Prescription"
-            buttonStyle={styles.refillButton}
-            disabled={prescription.status !== 'active'}
-          />
-        </Card>
-      ))}
-    </ScrollView>
+    <View style={styles.container}>
+      <FlatList
+        data={prescriptions}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.prescriptionCard}>
+            <View style={styles.header}>
+              <Text style={styles.medicationName}>{item.medication}</Text>
+              <View style={[styles.statusBadge, 
+                { backgroundColor: item.status === 'Active' ? '#4CAF50' : '#FF9800' }]}>
+                <Text style={styles.statusText}>{item.status}</Text>
+              </View>
+            </View>
+            <Text style={styles.doctor}>{item.doctor}</Text>
+            <Text style={styles.instructions}>{item.instructions}</Text>
+            <View style={styles.footer}>
+              <Text style={styles.refills}>Refills remaining: {item.refills}</Text>
+              <TouchableOpacity style={styles.refillButton}>
+                <Text style={styles.refillButtonText}>Request Refill</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
   );
-};
-
-const DetailRow = ({ icon, label, value }) => (
-  <View style={styles.detailRow}>
-    <Icon name={icon} size={16} color="#666" />
-    <Text style={styles.label}>{label}:</Text>
-    <Text style={styles.value}>{value}</Text>
-  </View>
-);
+}
+// Previous imports and data remain the same
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  prescriptionCard: {
+    backgroundColor: '#fff',
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    marginBottom: 12,
   },
-  addButton: {
-    borderRadius: 8,
+  medicationName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  statusBadge: {
     paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
   },
-  prescriptionCard: {
-    borderRadius: 8,
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  doctor: {
+    fontSize: 14,
+    color: '#666',
     marginBottom: 8,
   },
-  prescriptionHeader: {
+  instructions: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+  },
+  footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: 12,
   },
-  status: {
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  prescriptionDetails: {
-    marginBottom: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  label: {
-    marginLeft: 8,
-    fontWeight: 'bold',
-    width: 80,
-  },
-  value: {
-    flex: 1,
+  refills: {
+    fontSize: 14,
+    color: '#666',
   },
   refillButton: {
-    marginTop: 8,
-    borderRadius: 8,
-    backgroundColor: '#2089dc',
+    backgroundColor: '#FFC947',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
+  refillButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+  }
 });
-
-export default PrescriptionScreen;

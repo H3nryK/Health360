@@ -1,72 +1,76 @@
-import { useState } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, Text } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { loginUser } from '../../store/slices/authSlice';
+import { useState, useContext } from 'react';
+import { View, TextInput, StyleSheet,Text } from 'react-native';
+import { Button } from '../components/Button';
+import { AuthContext } from '../context/AuthContext';
 
-const LoginScreen = ({ navigation }) => {
+import { useTheme } from '../context/ThemeContext';
+
+export default function LoginScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const dispatch = useDispatch();
-
-  const handleLogin = () => {
-    dispatch(loginUser({ phone, password }));
-  };
+  const { theme } = useTheme();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Health Pharm</Text>
+      <Text style={[styles.header, { color: theme.colors.text }]}>
+        Welcome Back
+      </Text>
+
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
         value={phone}
         onChangeText={setPhone}
+        placeholder="Phone Number"
         keyboardType="phone-pad"
       />
+
       <TextInput
         style={styles.input}
-        placeholder="Password"
         value={password}
         onChangeText={setPassword}
+        placeholder="Password"
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+
+      <Button 
+        title="Login" 
+        onPress={() => navigation.navigate('PatientHome')} 
+      />
+
+      <Text 
+        style={styles.registerText}
+        onPress={() => navigation.navigate('Register')}
+      >
+        Don't have an account? Register
+      </Text>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    justifyContent: 'center'
   },
-  title: {
+  header: {
     fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 30,
+    fontWeight: 'bold',
+    marginBottom: 32,
+    textAlign: 'center'
   },
   input: {
     height: 50,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    fontSize: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  registerText: {
+    marginTop: 16,
+    textAlign: 'center',
+    color: '#007AFF'
+  }
 });
-
-export { LoginScreen };
