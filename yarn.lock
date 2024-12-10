@@ -4071,6 +4071,7 @@ hasown@^2.0.2:
     dotenv "^16.4.7"
     expo "~52.0.9"
     expo-asset "^11.0.1"
+    expo-file-system "^18.0.4"
     expo-font "~13.0.1"
     expo-image-picker "^16.0.3"
     expo-linear-gradient "~14.0.1"

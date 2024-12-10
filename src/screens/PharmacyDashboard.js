@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const { width } = Dimensions.get('window');
 
 export default function PharmacyDashboard({ route, navigation }) {
-  const { licenseNumber } = route.params;
+  //const { licenseNumber } = route.params;
 
   const menuItems = [
     { icon: 'receipt', title: 'Orders', count: '12', route: 'Orders' },
@@ -74,9 +74,11 @@ export default function PharmacyDashboard({ route, navigation }) {
 
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton}
+          onPress={() => navigation.navigate('AddProduct')}>
             <Icon name="add-circle" size={24} color="#FFF" />
             <Text style={styles.actionButtonText}>Add New Product</Text>
+            
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
             <Icon name="qr-code-scanner" size={24} color="#FFF" />

@@ -179,43 +179,46 @@ const login = async (req, res) => {
 
 
 
-// Get all products
 const getAllProducts = async (req, res) => {
   try {
-      const products = await pool.query(
-          'SELECT * FROM products WHERE pharmacy_id = $1 ORDER BY name',
-          [req.pharmacy.id]
-      );
-      res.json({
-          success: true,
-          data: products.rows
-      });
+    if (!req.pharmacy || !req.pharmacy.id) {
+      throw new Error("Pharmacy ID is missing in request context");
+    }
+
+    const products = await pool.query(
+      "SELECT * FROM products WHERE pharmacy_id = $1 ORDER BY name",
+      [req.pharmacy.id]
+    );
+
+    res.json({
+      success: true,
+      data: products.rows,
+    });
   } catch (err) {
-      console.error('Error fetching products:', err);
-      res.status(500).json({ 
-          success: false,
-          message: err.message 
-      });
+    console.error("Error fetching products:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
 const cloudinary = require('./cloudinary');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
-
 const createProduct = async (req, res) => {
   try {
-      const {
-          name, description, price, quantity,
-          category, brand, threshold
-      } = req.body;
+      // Log incoming request
+      console.log('Request body:', req.body);
+      console.log('Auth token:', req.headers.authorization);
+      console.log('Pharmacy ID:', req.pharmacyId);
 
-      // Use pharmacyId from auth middleware
-      const pharmacyId = req.pharmacyId;
-
-      if (!pharmacyId) {
-          return res.status(401).json({ 
-              message: 'Pharmacy ID not found' 
+      // Validate required fields
+      const { name, price, quantity } = req.body;
+      if (!name || !price || !quantity) {
+          return res.status(400).json({
+              success: false,
+              message: 'Name, price and quantity are required'
           });
       }
 
@@ -229,16 +232,23 @@ const createProduct = async (req, res) => {
           RETURNING *
       `;
 
-      const newProduct = await pool.query(query, [
+      const values = [
           name,
-          description || '',
+          req.body.description || '',
           parseFloat(price),
           parseInt(quantity),
-          category || '',
-          brand || '',
-          parseInt(threshold) || 0,
-          pharmacyId  // Use pharmacyId here
-      ]);
+          req.body.category || '',
+          req.body.brand || '',
+          parseInt(req.body.threshold) || 0,
+          req.pharmacyId
+      ];
+
+      // Log query details
+      console.log('Query:', query);
+      console.log('Values:', values);
+
+      const newProduct = await pool.query(query, values);
+      console.log('Created product:', newProduct.rows[0]);
 
       res.status(201).json({
           success: true,
@@ -254,68 +264,7 @@ const createProduct = async (req, res) => {
   }
 };
 
-// Update full product
-const updateProduct = async (req, res) => {
-  const { id } = req.params;
-  const {
-      name, description, price, quantity,
-      category, brand, threshold
-  } = req.body;
 
-  try {
-      // Handle image upload if provided
-      let image_url = null;
-      if (req.file) {
-          const b64 = Buffer.from(req.file.buffer).toString('base64');
-          const dataURI = `data:${req.file.mimetype};base64,${b64}`;
-          
-          const uploadResponse = await cloudinary.uploader.upload(dataURI, {
-              folder: 'products'
-          });
-          
-          image_url = uploadResponse.secure_url;
-      }
-
-      const query = `
-          UPDATE products 
-          SET name = $1, description = $2, price = $3,
-              quantity = $4, category = $5, brand = $6,
-              threshold = $7, image_url = COALESCE($8, image_url),
-              updated_at = NOW()
-          WHERE id = $9 AND pharmacy_id = $10
-          RETURNING *
-      `;
-
-      const updatedProduct = await pool.query(query, [
-          name,
-          description,
-          parseFloat(price),
-          parseInt(quantity),
-          category,
-          brand,
-          parseInt(threshold),
-          image_url,
-          id,
-          req.pharmacy.id
-      ]);
-
-      if (updatedProduct.rows.length === 0) {
-          return res.status(404).json({ message: 'Product not found' });
-      }
-
-      res.json({
-          success: true,
-          data: updatedProduct.rows[0],
-          message: 'Product updated successfully'
-      });
-  } catch (err) {
-      console.error('Error updating product:', err);
-      res.status(400).json({ 
-          success: false,
-          message: err.message 
-      });
-  }
-};
 
 // Update product quantity only
 const updateProductQuantity = async (req, res) => {
@@ -357,7 +306,7 @@ const updateProductQuantity = async (req, res) => {
 module.exports = {
   register,
   login,
-  updateProduct,
+ // updateProduct,
     updateProductQuantity,
     createProduct,
     getAllProducts

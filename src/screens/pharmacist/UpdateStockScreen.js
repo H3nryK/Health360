@@ -1,58 +1,90 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UpdateStockScreen = ({ route, navigation }) => {
   const { medication } = route.params;
-  const [quantity, setQuantity] = useState('');
-  const [reason, setReason] = useState('');
+  const [name, setName] = useState(medication.name);
+  const [price, setPrice] = useState(medication.price.toString());
+  const [quantity, setQuantity] = useState(medication.quantity.toString());
+  const [category, setCategory] = useState(medication.category);
 
-  const handleUpdateStock = () => {
-    if (!quantity || !reason) {
-      Alert.alert('Error', 'Please fill in all fields');
+  const handleUpdate = async () => {
+    const token = await AsyncStorage.getItem('token');
+    const pharmacyId = await AsyncStorage.getItem('pharmacyId');
+
+    if (!token || !pharmacyId) {
+      Alert.alert('Missing credentials', 'Token or Pharmacy ID is not found');
       return;
     }
 
-    // Update stock logic here
-    Alert.alert(
-      'Success',
-      'Stock updated successfully',
-      [{ text: 'OK', onPress: () => navigation.goBack() }]
-    );
+    try {
+      const response = await axios.put(`http://192.168.0.11:5000/products/${medication.id}`, 
+        {
+          name,
+          price: parseFloat(price),
+          quantity: parseInt(quantity),
+          category
+        }, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            pharmacyId: pharmacyId
+          }
+        }
+      );
+      
+      if (response.status === 200) {
+        Alert.alert('Success', 'Product updated successfully');
+        navigation.goBack();  // Go back to the previous screen
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      Alert.alert('Error', 'Failed to update product');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Update Stock</Text>
-      <Text style={styles.medicationName}>{medication.name}</Text>
+      <Text style={styles.title}>Update Product</Text>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Current Stock: {medication.quantity}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter new quantity"
-          keyboardType="numeric"
-          value={quantity}
-          onChangeText={setQuantity}
-        />
-      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Product Name"
+        value={name}
+        onChangeText={setName}
+      />
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Reason for Update</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Enter reason for stock update"
-          multiline
-          numberOfLines={4}
-          value={reason}
-          onChangeText={setReason}
-        />
-      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Price"
+        keyboardType="numeric"
+        value={price}
+        onChangeText={setPrice}
+      />
 
-      <TouchableOpacity 
-        style={styles.updateButton}
-        onPress={handleUpdateStock}
-      >
-        <Text style={styles.buttonText}>Update Stock</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Quantity"
+        keyboardType="numeric"
+        value={quantity}
+        onChangeText={setQuantity}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Category"
+        value={category}
+        onChangeText={setCategory}
+      />
+
+      <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
+        <Ionicons name="checkmark-circle" size={24} color="#fff" />
+        <Text style={styles.buttonText}>Update</Text>
       </TouchableOpacity>
     </View>
   );
@@ -67,41 +99,29 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  medicationName: {
-    fontSize: 18,
-    color: '#666',
     marginBottom: 20,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
   },
   input: {
+    height: 50,
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
+    marginBottom: 15,
+    paddingLeft: 10,
   },
   updateButton: {
-    backgroundColor: '#28a745',
-    padding: 15,
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
 

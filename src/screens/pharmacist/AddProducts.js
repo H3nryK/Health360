@@ -28,20 +28,29 @@ const AddProductScreen = ({ navigation }) => {
   });
 
   const validateForm = () => {
+    console.log('Validating form...');
+    console.log('Current form data:', formData);
+  
     if (!formData.name.trim()) {
+      console.log('Validation failed: Name missing');
       Alert.alert('Error', 'Product name is required');
       return false;
     }
     if (!formData.price || isNaN(parseFloat(formData.price))) {
+      console.log('Validation failed: Invalid price');
       Alert.alert('Error', 'Valid price is required');
       return false;
     }
     if (!formData.quantity || isNaN(parseInt(formData.quantity))) {
+      console.log('Validation failed: Invalid quantity');
       Alert.alert('Error', 'Valid quantity is required');
       return false;
     }
+    
+    console.log('Validation passed');
     return true;
   };
+  
 
  /*  const handleSubmit = async () => {
     try {
@@ -62,52 +71,93 @@ const AddProductScreen = ({ navigation }) => {
 
   //
   // Add image picker function
-const pickImage = async () => {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const pickImage = async () => {
+    console.log('Starting image picker...');
+    
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log('Permission status:', status);
+    
+    if (status !== 'granted') {
+      console.log('Permission denied');
+      Alert.alert('Permission needed', 'Please grant camera roll permissions');
+      return;
+    }
   
-  if (status !== 'granted') {
-    Alert.alert('Permission needed', 'Please grant camera roll permissions');
-    return;
-  }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [4, 3],
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    return result.assets[0].uri;
-  }
-};
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+  
+    console.log('Image picker result:', result);
+  
+    if (!result.canceled) {
+      console.log('Image selected:', result.assets[0].uri);
+      return result.assets[0].uri;
+    }
+  };
+  
 
 // Update handleSubmit to include image upload
-const handleSubmit = async () => {
-  try {
-    const token = await AsyncStorage.getItem('token');
-    
-    // If there's an image, convert it to base64
-    let imageData = null;
-    if (formData.image_url) {
-      const base64 = await FileSystem.readAsStringAsync(formData.image_url, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      imageData = `data:image/jpeg;base64,${base64}`;
-    }
 
-    await axios.post(
-      'http://192.168.0.11:5000/createproduct',
-      { ...formData, image_url: imageData },
-      { headers: { Authorization: `Bearer ${token}` }}
+
+const handleSubmit = async () => {
+  if (!validateForm()) return;
+
+  try {
+    // Get credentials
+    const token = await AsyncStorage.getItem('token');
+    const pharmacyId = await AsyncStorage.getItem('pharmacyId');
+
+    console.log('Submitting with:', { token: !!token, pharmacyId });
+
+    // Prepare form data
+    const productData = {
+      ...formData,
+      pharmacy_id: pharmacyId,
+      price: parseFloat(formData.price),
+      quantity: parseInt(formData.quantity),
+      threshold: parseInt(formData.threshold) || 10
+    };
+
+    console.log('Product data:', productData);
+
+    const response = await axios.post(
+      'http://192.168.0.11:5000/createproduct', // Change to match backend route
+      productData,
+      { 
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
     );
-    
-    Alert.alert('Success', 'Product added successfully');
-    navigation.goBack();
+
+    console.log('Response:', response.data);
+
+    Alert.alert(
+      'Success', 
+      'Product added successfully',
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('PharmacyDashboard')
+        }
+      ]
+    );
+
   } catch (err) {
-    Alert.alert('Error', 'Failed to add product');
+    console.error('Full error:', err);
+    console.error('Response data:', err.response?.data);
+    Alert.alert(
+      'Error', 
+      err.response?.data?.message || 'Failed to add product'
+    );
   }
 };
+
+
 
   return (
     <ScrollView style={styles.container}>

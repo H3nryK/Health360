@@ -15,6 +15,7 @@ import PharmacyRegistrationScreen from '../screens/PharmacyRegistration';
 import PharmacyLogin from "../screens/PharmacyLogin"
 import PharmacyDashboard from '../screens/PharmacyDashboard';
 import AddProductScreen from '../screens/pharmacist/AddProducts';
+import UpdateStockScreen from '../screens/pharmacist/UpdateStockScreen';
 
 
 const Stack = createStackNavigator();
@@ -40,6 +41,7 @@ export default function MainNavigator() {
       <Stack.Screen name="Emergency" component={EmergencyScreen} />
       <Stack.Screen name="PharmacyDashboard" component={PharmacyDashboard}/>
       <Stack.Screen name="AddProduct" component={AddProductScreen}/>
+      <Stack.Screen name="UpdateStock" component={UpdateStockScreen}/>
       
       {/* Insurance Screens */}
       <Stack.Screen name="Insurance" component={InsuranceDashboardScreen} />

@@ -43,60 +43,35 @@ export default function PharmacyLoginScreen({ navigation }) {
   
 
   const handleLogin = async () => {
-    // Reset errors
-    setErrors({
-      licenseNumber: '',
-      password: ''
-    });
-  
-    // Validate fields
-    let hasErrors = false;
-    if (!licenseNumber.trim()) {
-      setErrors(prev => ({...prev, licenseNumber: 'License number is required'}));
-      hasErrors = true;
-    }
-    if (!password.trim()) {
-      setErrors(prev => ({...prev, password: 'Password is required'}));
-      hasErrors = true;
-    }
-  
-    if (hasErrors) {
-      return;
-    }
-  
-    setLoading(true);
     try {
-      console.log('Attempting login with:', {
-        license_number: licenseNumber.trim()
-      });
-  
       const response = await axios.post('http://192.168.0.11:5000/pharmacylogin', {
         license_number: licenseNumber.trim(),
         password: password.trim()
       });
   
-      console.log('Login successful:', response.data.success);
-  
       if (response.data?.success && response.data?.token) {
+        // Store credentials
         await AsyncStorage.setItem('token', response.data.token);
-        await AsyncStorage.setItem('pharmacyData', JSON.stringify(response.data.pharmacy));
-        navigation.replace('PharmacyDashboard', { 
-          licenseNumber: licenseNumber.trim() 
+        await AsyncStorage.setItem('pharmacyId', response.data.pharmacy.id.toString());
+        
+        // Debug log
+        console.log('Stored credentials:', {
+          token: response.data.token,
+          pharmacyId: response.data.pharmacy.id
         });
+  
+        // Navigate to dashboard
+        navigation.replace('PharmacyDashboard');
       }
     } catch (error) {
-      console.error('Login failed:', {
-        status: error.response?.status,
-        message: error.response?.data?.message
-      });
+      console.error('Login error:', error);
       Alert.alert(
         'Login Failed',
-        error.response?.data?.message || 'Connection error. Please try again.'
+        error.response?.data?.message || 'Connection error'
       );
-    } finally {
-      setLoading(false);
     }
   };
+  
   
   
 
