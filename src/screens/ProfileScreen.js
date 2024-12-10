@@ -11,6 +11,17 @@ const ProfileScreen = () => {
     bloodType: 'A+',
     allergies: 'None',
   };
+  
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.multiRemove(['token', 'pharmacyData']);
+      navigation.replace('PharmacyLogin');
+    } catch (error) {
+      console.log('Logout error:', error);
+    }
+  };
+  
 
   const menuItems = [
     {

@@ -1,38 +1,60 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity, 
+  TextInput, 
+  Alert,
+  ActivityIndicator,
+  RefreshControl
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface MedicationItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  category: string;
-  threshold: number;
-}
 
 const InventoryManagementScreen = ({ navigation }) => {
+  const [inventory, setInventory] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [inventory, setInventory] = useState<MedicationItem[]>([
-    {
-      id: '1',
-      name: 'Amoxicillin 500mg',
-      quantity: 500,
-      price: 12.99,
-      category: 'Antibiotics',
-      threshold: 100
-    },
-    {
-      id: '2',
-      name: 'Lisinopril 10mg',
-      quantity: 50,
-      price: 15.99,
-      category: 'Blood Pressure',
-      threshold: 75
-    }
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const renderInventoryItem = ({ item }: { item: MedicationItem }) => (
+  // Fetch inventory data
+  const fetchInventory = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get('http://192.168.0.11:5000/inventory', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setInventory(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load inventory');
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  // Update stock function
+  const handleUpdateStock = async (id, newQuantity) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.patch(`http://192.168.0.11:5000/inventory/${id}`, 
+        { quantity: newQuantity },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      fetchInventory();
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update stock');
+    }
+  };
+
+  const renderInventoryItem = ({ item }) => (
     <TouchableOpacity 
       style={[styles.itemCard, 
         item.quantity <= item.threshold && styles.lowStockCard
@@ -83,6 +105,7 @@ const InventoryManagementScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -96,36 +119,52 @@ const InventoryManagementScreen = ({ navigation }) => {
           />
         </View>
         <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddMedication')}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
+  style={styles.addButton}
+  onPress={() => navigation.navigate('AddProduct')}
+>
+  <Ionicons name="add" size={24} color="#fff" />
+</TouchableOpacity>
+        
       </View>
 
-      <FlatList
-        data={inventory}
-        renderItem={renderInventoryItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <>
+          <FlatList
+            data={inventory.filter(item => 
+              item.name.toLowerCase().includes(searchQuery.toLowerCase())
+            )}
+            renderItem={renderInventoryItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl refreshing={loading} onRefresh={fetchInventory} />
+            }
+          />
 
-      <View style={styles.summaryBar}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Total Items</Text>
-          <Text style={styles.summaryValue}>{inventory.length}</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Low Stock</Text>
-          <Text style={styles.summaryValue}>
-            {inventory.filter(item => item.quantity <= item.threshold).length}
-          </Text>
-        </View>
-      </View>
+          <View style={styles.summaryBar}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Total Items</Text>
+              <Text style={styles.summaryValue}>{inventory.length}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Low Stock</Text>
+              <Text style={styles.summaryValue}>
+                {inventory.filter(item => item.quantity <= item.threshold).length}
+              </Text>
+            </View>
+          </View>
+        </>
+      )}
     </View>
   );
 };
 
+
+    
 const styles = StyleSheet.create({
   container: {
     flex: 1,

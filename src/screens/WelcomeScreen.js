@@ -1,176 +1,293 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Animated, 
+import React, { useEffect,useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
   Dimensions,
-  StatusBar 
+  TouchableOpacity,
+  StatusBar,
+  Animated,
+  Platform,
+  Image,
 } from 'react-native';
-import { Button, Icon } from '@rneui/themed';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Icon } from '@rneui/themed';
+import { SafeAreaView } from 'react-native-safe-area-context';
+//import { useFonts, Poppins_700Bold, Poppins_500Medium } from '@expo-google-fonts/poppins';
+import { 
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold
+} from '@expo-google-fonts/poppins';
 
-const { width } = Dimensions.get('window');
-
-const LoadingSpinner = () => {
-  const spinValue = new Animated.Value(0);
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(spinValue, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true
-      })
-    ).start();
-  }, []);
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg']
-  });
-
-  return (
-    <Animated.View style={{ transform: [{ rotate: spin }] }}>
-      <Icon name="medical-services" size={50} color="#fff" />
-    </Animated.View>
-  );
-};
+const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen({ navigation }) {
-  const [showContent, setShowContent] = useState(false);
-  const fadeAnim = new Animated.Value(0);
+ /*  const [fontsLoaded] = useFonts({
+    Poppins_700Bold,
+    Poppins_500Medium,
+  }); */
 
+
+   // 1. Load fonts
+   let [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold
+  });
+
+  // 2. Create animation values using useState
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
+
+  // 3. Handle animations in useEffect
   useEffect(() => {
-    setTimeout(() => {
-      setShowContent(true);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }).start();
-    }, 2000);
-  }, []);
+    if (fontsLoaded) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [fontsLoaded]);
+
+  // 4. Remove duplicate font check
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      {!showContent ? (
-        <View style={styles.loadingContainer}>
-          <LoadingSpinner />
-          <Text style={styles.loadingText}>HealthPharma</Text>
+      <LinearGradient
+        colors={['#FFC947', '#FFB830']}
+        style={styles.gradientBackground}
+      >
+        <View style={styles.header}>
+          <Image
+            source={require('../../assets/icons8-insurance-64.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
-      ) : (
-        <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
-          <View style={styles.header}>
-            <Icon name="medical-services" size={80} color="#FFC947" />
-            <Text style={styles.title}>HealthPharma</Text>
-            <Text style={styles.subtitle}>Your Health, Our Priority</Text>
+
+        <Animated.View 
+          style={[
+            styles.contentContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.content}>
+            <Text style={styles.welcomeText}>Welcome to</Text>
+            <Text style={styles.title}>Health360</Text>
+            <Text style={styles.subtitle}>
+              Your Health, Our Priority
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.mainButton}
+                onPress={() => navigation.navigate('Login')}
+              >
+                <LinearGradient
+                  colors={['#FFC947', '#FFB830']}
+                  style={styles.buttonGradient}
+                >
+                  <Text style={styles.buttonText}>Go to App</Text>
+                  <Icon name="arrow-forward" size={20} color="#FFF" />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.outlineButton}
+                onPress={() => navigation.navigate('Login')}
+              >
+                <Text style={styles.outlineButtonText}>Sign In</Text>
+              </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <View style={styles.line} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.line} />
+              </View>
+
+              <View style={styles.alternativeButtons}>
+                <TouchableOpacity 
+                  style={styles.altButton}
+                  onPress={() => navigation.navigate('USSD')}
+                >
+                  <Icon name="phone" size={24} color="#FFC947" />
+                  <Text style={styles.altButtonText}>USSD</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.altButton}
+                  onPress={() => navigation.navigate('PharmacyLogin')}
+                >
+                  <Icon name="store" size={24} color="#FFC947" />
+                  <Text style={styles.altButtonText}>Pharmacy Sign in</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Continue with App"
-              icon={{
-                name: 'arrow-forward',
-                size: 20,
-                color: 'white',
-              }}
-              iconRight
-              buttonStyle={styles.primaryButton}
-              containerStyle={styles.buttonWrapper}
-              onPress={() => navigation.navigate('Login')}
-            />
-
-            <Button
-              title="Use USSD Service"
-              type="outline"
-              buttonStyle={styles.secondaryButton}
-              containerStyle={styles.buttonWrapper}
-              titleStyle={{ color: '#FFC947' }}
-              onPress={() => navigation.navigate('USSDInfo')}
-            />
-
-            <Button
-              title="Register as Pharmacy"
-              type="clear"
-              titleStyle={{ color: '#666' }}
-              containerStyle={styles.buttonWrapper}
-              onPress={() => navigation.navigate('PharmacyRegistration')}
-            />
-          </View>
-
-          <Text style={styles.footer}>
-            Connecting patients with pharmacies
+          <Text style={styles.footerText}>
+            By continuing, you agree to our Terms & Privacy Policy
           </Text>
         </Animated.View>
-      )}
-    </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white"
+    color:'transparent'
   },
-  loadingContainer: {
+  gradientBackground: {
     flex: 1,
-    backgroundColor: 'white',
+  },
+  header: {
+    height: height * 0.22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 20 : 10,
+  },
+  logo: {
+    width: width * 0.4,
+    height: height * 0.15,
+  },
+  contentContainer: {
+    flex: 1.8,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  content: {
+    flex: 1,
+  },
+  welcomeText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 26,
+    color: '#555',
+    marginBottom: 4,
+  },
+  title: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 42,
+    color: '#222',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 32,
+  },
+  buttonContainer: {
+    marginTop: 32,
+    gap: 16,
+  },
+  mainButton: {
+    height: 54,
+    borderRadius: 27,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FFC947',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  buttonGradient: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonText: {
+    fontFamily: 'Poppins_700Bold',
+    color: '#FFF',
+    fontSize: 18,
+  },
+  outlineButton: {
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 2,
+    borderColor: '#FFC947',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 20,
-  },
-  contentContainer: {
-    flex: 1,
-    padding: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: width * 0.2,
-    marginBottom: width * 0.1,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 20,
-  },
-  subtitle: {
+  outlineButtonText: {
+    fontFamily: 'Poppins_500Medium',
+    color: '#FFC947',
     fontSize: 18,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E1E1E1',
+  },
+  dividerText: {
+    fontFamily: 'Poppins_500Medium',
     color: '#666',
-    marginTop: 8,
+    paddingHorizontal: 16,
   },
-  buttonContainer: {
-    marginTop: width * 0.1,
+  alternativeButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
   },
-  buttonWrapper: {
-    marginBottom: 16,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  altButton: {
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#FFF8E7',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 0.47,
   },
-  primaryButton: {
-    backgroundColor: '#FFC947',
-    borderRadius: 8,
-    padding: 15,
+  altButtonText: {
+    fontFamily: 'Poppins_500Medium',
+    color: '#FFC947',
+    fontSize: 14,
   },
-  secondaryButton: {
-    borderColor: '#FFC947',
-    borderRadius: 8,
-    padding: 15,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 24,
-    alignSelf: 'center',
+  footerText: {
+    fontFamily: 'Poppins_500Medium',
+    textAlign: 'center',
     color: '#666',
+    fontSize: 12,
+    marginTop: 24,
   },
 });

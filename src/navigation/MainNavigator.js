@@ -10,6 +10,11 @@ import InsuranceDashboardScreen from '../screens/InsuraceScreen';
 import PharmacyDetailsScreen from '../screens/PharmacyDetailsScreen';
 import EmergencyScreen from '../screens/EmergencyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import USSDScreen from '../screens/USSDScreen';
+import PharmacyRegistrationScreen from '../screens/PharmacyRegistration';
+import PharmacyLogin from "../screens/PharmacyLogin"
+import PharmacyDashboard from '../screens/PharmacyDashboard';
+import AddProductScreen from '../screens/pharmacist/AddProducts';
 
 
 const Stack = createStackNavigator();
@@ -33,9 +38,15 @@ export default function MainNavigator() {
       <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} />
       <Stack.Screen name="Inventory" component={InventoryScreen} />
       <Stack.Screen name="Emergency" component={EmergencyScreen} />
+      <Stack.Screen name="PharmacyDashboard" component={PharmacyDashboard}/>
+      <Stack.Screen name="AddProduct" component={AddProductScreen}/>
       
       {/* Insurance Screens */}
       <Stack.Screen name="Insurance" component={InsuranceDashboardScreen} />
+      <Stack.Screen name="USSD" component={USSDScreen} />
+      <Stack.Screen name="PharmacyRegistration" component={PharmacyRegistrationScreen} />
+      <Stack.Screen name="PharmacyLogin" component={PharmacyLogin} />
+    
     </Stack.Navigator>
   );
 }

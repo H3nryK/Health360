@@ -1,158 +1,214 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  TextInput, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  KeyboardAvoidingView,
   Platform,
-  Image,
-  ActivityIndicator 
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import { Icon } from '@rneui/themed';
-import { useAuth } from '../../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }) {
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
 
-  const handleLogin = async () => {
-    try {
-      await login({ phone, password });
-    } catch (error) {
-      console.error(error);
+  const handleSubmit = () => {
+    if (isLogin) {
+      // Handle login
+      navigation.navigate('Home');
+    } else {
+      // Handle registration
+      navigation.navigate('Login');
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <Image
-          source={require('../../../assets/icons8-insurance-64.png')}
-          style={styles.logo}
-        />
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.inputContainer}>
-          <Icon name="phone" size={20} color="#666" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            placeholderTextColor="#999"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            placeholderTextColor="#999"
-          />
-          <TouchableOpacity 
-            onPress={() => setShowPassword(!showPassword)}
-            style={styles.eyeIcon}
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <LinearGradient
+            colors={['#FFC947', '#FFB830']}
+            style={styles.header}
           >
-            <Icon 
-              name={showPassword ? "visibility-off" : "visibility"} 
-              size={20} 
-              color="#666" 
-            />
-          </TouchableOpacity>
-        </View>
+            <Icon name="medical-services" size={60} color="#fff" />
+            <Text style={styles.headerTitle}>Health360</Text>
+          </LinearGradient>
 
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('ForgotPassword')}
-          style={styles.forgotPassword}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>
+              {isLogin ? 'Welcome Back' : 'Create Account'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isLogin 
+                ? 'Sign in to continue' 
+                : 'Fill in your details to get started'
+              }
+            </Text>
 
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
-        </TouchableOpacity>
+            {!isLogin && (
+              <View style={styles.inputContainer}>
+                <Icon name="person" size={20} color="#666" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Full Name"
+                  value={formData.fullName}
+                  onChangeText={(text) => setFormData({...formData, fullName: text})}
+                />
+              </View>
+            )}
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.signupText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+            <View style={styles.inputContainer}>
+              <Icon name="phone" size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Phone Number"
+                keyboardType="phone-pad"
+                value={formData.phone}
+                onChangeText={(text) => setFormData({...formData, phone: text})}
+              />
+            </View>
+
+            {!isLogin && (
+              <View style={styles.inputContainer}>
+                <Icon name="email" size={20} color="#666" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email Address"
+                  keyboardType="email-address"
+                  value={formData.email}
+                  onChangeText={(text) => setFormData({...formData, email: text})}
+                />
+              </View>
+            )}
+
+            <View style={styles.inputContainer}>
+              <Icon name="lock" size={20} color="#666" />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry={!showPassword}
+                value={formData.password}
+                onChangeText={(text) => setFormData({...formData, password: text})}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Icon 
+                  name={showPassword ? "visibility-off" : "visibility"} 
+                  size={20} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+            </View>
+
+            {isLogin && (
+              <TouchableOpacity style={styles.forgotPassword}>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity 
+              style={styles.submitButton}
+              onPress={handleSubmit}
+            >
+              <LinearGradient
+                colors={['#FFC947', '#FFB830']}
+                style={styles.gradient}
+              >
+                <Text style={styles.submitButtonText}>
+                  {isLogin ? 'Sign In' : 'Create Account'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                {isLogin ? "Don't have an account? " : 'Already have an account? '}
+              </Text>
+              <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+                <Text style={styles.footerLink}>
+                  {isLogin ? 'Sign Up' : 'Sign In'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F8F9FA',
   },
   header: {
+    height: height * 0.25,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 20,
+  headerTitle: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 12,
+  },
+  formContainer: {
+    flex: 1,
+    padding: 24,
+    marginTop: -20,
+    backgroundColor: '#F8F9FA',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2D3436',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-  },
-  form: {
-    paddingHorizontal: 24,
+    color: '#636E72',
+    marginBottom: 32,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFFFF',
+    padding: 16,
     borderRadius: 12,
     marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  inputIcon: {
-    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   input: {
     flex: 1,
-    height: 56,
+    marginLeft: 12,
     fontSize: 16,
-    color: '#333',
-  },
-  eyeIcon: {
-    padding: 8,
+    color: '#2D3436',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -161,40 +217,41 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#FFC947',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  button: {
-    backgroundColor: '#FFC947',
+  submitButton: {
     height: 56,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    marginBottom: 24,
     shadowColor: '#FFC947',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
-  buttonDisabled: {
-    opacity: 0.7,
+  gradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
     fontWeight: 'bold',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    alignItems: 'center',
   },
   footerText: {
-    color: '#666',
     fontSize: 14,
+    color: '#000',
   },
-  signupText: {
-    color: '#FFC947',
+  footerLink: {
     fontSize: 14,
-    fontWeight: '500',
-  }
+    color: '#FFC947',
+    fontWeight: '600',
+  },
 });
